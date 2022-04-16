@@ -6,7 +6,16 @@ Current function
 
 https://user-images.githubusercontent.com/89366347/163660304-08c638a5-ba59-4aad-80c5-659431154cce.mov
 
+must do
+Login screen に問題あり
+日程の選択をカレンダーにする
 
+want to do 
+file typeを選択型にする
+addressの決まっているところは初めから入っているようにする
+
+
+*Passoword hash successful
 <img width="1227" alt="Screenshot 2022-04-16 at 12 48 29" src="https://user-images.githubusercontent.com/89366347/163660347-34d0148c-95d2-481d-90f5-5f9dfa8da3b8.png">
 
 
