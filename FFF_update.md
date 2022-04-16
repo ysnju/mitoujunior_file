@@ -1,7 +1,8 @@
 Current function
 
+<img width="851" alt="Screenshot 2022-04-14 at 1 16 54" src="https://user-images.githubusercontent.com/89366347/163660238-14a664ab-69e3-4de5-aa31-ce007ee5dc1b.png">
 
-https://user-images.githubusercontent.com/89366347/163660222-c909f771-f156-4e8c-bb67-c2e0c4867dbf.mov
+
 
 
 ScreenManager:
