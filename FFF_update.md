@@ -4,6 +4,10 @@ Current function
 
 
 
+https://user-images.githubusercontent.com/89366347/163660304-08c638a5-ba59-4aad-80c5-659431154cce.mov
+
+
+
 
 ScreenManager:
     id:scr_manager
