@@ -18,6 +18,221 @@ addressの決まっているところは初めから入っているようにす�
 *Passoword hash successful
 <img width="1227" alt="Screenshot 2022-04-16 at 12 48 29" src="https://user-images.githubusercontent.com/89366347/163660347-34d0148c-95d2-481d-90f5-5f9dfa8da3b8.png">
 
+```py
+import random
+
+from kivy.lang import Builder
+from kivymd.app import MDApp
+from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.screen import MDScreen
+import sqlite3
+
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256"],
+    default="pbkdf2_sha256",
+    pbkdf2_sha256__default_rounds=30000
+)
+
+
+def encrypt_password(password):
+    return pwd_context.encrypt(password)
+
+
+def check_password(password, hashed):
+    return pwd_context.verify(password, hashed)
+
+
+hash_pwd = encrypt_password("password123")
+# print(hash_pwd)
+# print(check_password("password", hash_pwd))
+# print(check_password("password123", hash_pwd))
+
+class my_database_handler:
+    def __init__(self,name):
+        self.name = name
+        #connect to the database
+        self.connection = sqlite3.connect(self.name)
+        #track where we are in table 何列めか
+        self.cursor = self.connection.cursor()
+
+
+    def close(self):
+        self.connection.close()
+
+
+#not null means it must be filled 必須項目
+    def create(self):
+        self.cursor.execute("""CREATE TABLE if not exists Users(
+            id INTEGER primary key autoincrement,
+            username VARCHAR(200),
+            email VARCHAR(255) not null unique,
+            password VARCHAR(256) not null       
+        );
+        """)
+        self.cursor.execute("""CREATE TABLE if not exists Files(
+                    id INTEGER primary key autoincrement,
+                    filename VARCHAR(200),
+                    filetype VARCHAR(255),
+                    filesize INTEGER,    
+                    lastopened VARCHAR(255), 
+                    firstcreated VARCHAR(255), 
+                    address VARCHAR(255) 
+                );
+                """)
+        self.connection.commit()
+
+    def create_test_user(self):
+        #set username password email
+
+        self.cursor.execute("""INSERT into Users values (1,"test", "test@test","qwerty");
+                """)
+        self.connection.commit()
+    def create_new_user(self, username, password, email):
+        print(username,password,email)
+        self.cursor.execute("INSERT into Users values (?,?,?,?)",(random.randint(1,1000000),username, email, encrypt_password(password)))
+        self.connection.commit()
+
+    def create_new_file(self,filename,filetype,filesize,lastopened,firstcreated,address):
+        print(filename,filesize,firstcreated)
+        self.cursor.execute("INSERT into Files values (?,?,?,?,?,?,?)",(random.randint(1,1000000),filename,filetype,filesize,lastopened,firstcreated,address))
+        self.connection.commit()
+
+
+    def get_all_users(self):
+        result = self.cursor.execute("SELECT * from Users;")
+        print(result.fetchall())
+
+    def query_user(self,email,password):
+        result = self.cursor.execute(f"SELECT * from Users where email='{email}';")
+        #this function returns none if the usser does not exist or the id if it does
+        return result.fetchone()
+    def query_files(self):
+        result = self.cursor.execute("SELECT * from Files;")
+        return result.fetchall()
+
+class RegistrationScreen(MDScreen):
+    def register(self):
+        print("registering")
+        email_entered = self.ids.email.text
+        username_entered = self.ids.username.text
+        password_entered = self.ids.password.text
+        print(email_entered, password_entered)
+        db = my_database_handler("app_database.db")
+        db.create_new_user(username=username_entered, email=email_entered,password=password_entered)
+        db.close()
+        self.parent.current = "Welcome Screen"
+
+class WelcomeScreen(MDScreen):
+    pass
+
+class LoginScreen(MDScreen):
+    def try_login(self):
+        print("trying loging")
+        email_entered = self.ids.email.text
+        password_entered = self.ids.password.text
+
+        print(email_entered, password_entered)
+
+
+        #we need to query the database
+        db = my_database_handler("app_database.db")
+        user = db.query_user(email = email_entered, password = password_entered)
+        print(f"{user}")
+        if user:
+            id,username,email,password_hash = user
+            if check_password(password_entered,password_hash) == True:
+                self.parent.current = "Welcome Screen"
+            else:
+                self.ids.login_label.text = "user does not exist"
+        #we need to query the database
+        #user exists go to welcome screen
+        #The parent of the login schreen is the screen manager
+
+
+
+
+
+    def go_to_register(self):
+        self.parent.current = "Registration Screen"
+
+class login(MDApp):
+    def build(self):
+        return
+
+class NewitemScreen(MDScreen):
+    def register_new_file(self):
+        print("registering")
+        filename_entered = self.ids.filename.text
+        filetype_entered = self.ids.filetype.text
+        filesize_entered = self.ids.filesize.text
+        lastopened_entered = self.ids.lastopened.text
+        firstcreated_entered = self.ids.firstcreated.text
+        address_entered = self.ids.address.text
+        print(filename_entered, filetype_entered)
+        nf = my_database_handler("file_database.db")
+        nf.create_new_file(filename=filename_entered, filetype=filetype_entered,filesize=filesize_entered,lastopened=lastopened_entered,firstcreated=firstcreated_entered,address=address_entered)
+        db.close()
+        self.parent.current = "Table Screen"
+
+
+class TableScreen(MDScreen):
+    deta_tables = None #class attribute
+    def on_pre_enter(self,*args):
+        """get data from database"""
+        db = my_database_handler("app_database.db")
+        query = db.query_files()
+        db.close()
+
+        self.data_tables = MDDataTable(
+            size_hint=(1, 0.5),
+            pos_hint={"center_x": .5, "top": 0.8},
+            use_pagination=False,
+            check=True,
+            # name column, width column, sorting function column(optional)
+            column_data=[
+                ("id", 28),
+                ("filename", 30),
+                ("filetype", 50),
+                ("filesize", 40),
+                ("lastopened", 40),
+                ("firstcreated", 40),
+                ("address", 40)
+            ],
+            row_data=query
+        )
+        self.data_tables.bind(on_row_press=self.on_row_press)
+        self.data_tables.bind(on_row_press=self.on_check_press)
+        self.add_widget(self.data_tables)
+
+
+    def on_row_press(self,Files,row):
+        print(f"Item was clicked",row)
+        print(row.text)
+
+    def on_check_press(self,table,current_row):
+        print("row pressed",current_row)
+        id,username,password,email = current_row
+        print(f"the user selected was {id}")
+
+db = my_database_handler("app_database.db")
+db.create()
+# db.create_test_user()
+nf = my_database_handler("file_database.db")
+nf.create()
+
+m = login()
+m.run()
+db.close()
+nf.close()
+
+
+
+
+
+```
+
 
 ScreenManager:
     id:scr_manager
