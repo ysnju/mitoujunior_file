@@ -1,3 +1,8 @@
+Current function
+
+
+https://user-images.githubusercontent.com/89366347/163660222-c909f771-f156-4e8c-bb67-c2e0c4867dbf.mov
+
 
 ScreenManager:
     id:scr_manager
